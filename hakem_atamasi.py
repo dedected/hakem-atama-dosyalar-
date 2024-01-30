@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import re
 def hakem_atamasi():
     epak_listesi = "EPAK listesi.xlsx"
     hakem_mazeret_listesi = "hakem mazeret listesi.xlsx"
@@ -62,12 +63,17 @@ def hakem_atamasi():
 
     return maç_atanacak_hakemler
 
+
+
 def mac_atamasi():
+    #tarih2 = str(input("Mazeret kontrol edilecek tarihi girin (09 ARALIK 2023 formatında): ")).strip()
+
     hakem_listesi = []  # Önce tanımla
     hakem_listesi = hakem_atamasi()  # Hakem listesini baştan al
 
     mac_listesi_exceli = "maçlar.xlsx"
     mac_listesi_exceli_oku = pd.read_excel(mac_listesi_exceli)
+    mac_listesi_exceli_oku = mac_listesi_exceli_oku.iloc[25:]
     mac_listesi_secilen_sutunlar = mac_listesi_exceli_oku.iloc[27:, [2, 3, 4, 5, 6]]
     mac_listesi = mac_listesi_secilen_sutunlar.values.tolist()
 
@@ -76,10 +82,113 @@ def mac_atamasi():
     kalan_hakemler = []  # Atanamayan (kalan) hakemlerin listesi
     previous_field = None  # To keep track of the previous field
 
-    for maclar in mac_listesi:
-        ikinci_eleman = maclar[2]
-        current_field = maclar[0]  # Assuming the field is in the 4th column
+    tarih2 = str(input("Mazeret kontrol edilecek tarihi girin (örn: 10 ARALIK 2023 (seçilen tarihi bu formatta giriniz)): "))
 
+    tarih2_yil_ay = tarih2.split(" ")[2:]
+    tarih2_regex1 = r"\b" + re.escape(tarih2) + r"\b"
+    regex_pattern1 = re.compile(tarih2_regex1)
+
+    tarih2_regex2 = r"\b" + re.escape(" ".join(tarih2_yil_ay)) + r"\b"
+    regex_pattern2 = re.compile(tarih2_regex2)
+
+    matching_rows_indices = []
+
+    for index, row in mac_listesi_exceli_oku.iterrows():
+        value_in_second_column = str(row.iloc[1])
+        value_in_third_column = str(row.iloc[2])
+
+        match_result_second_column = regex_pattern1.search(value_in_second_column)
+        if match_result_second_column:
+            matching_rows_indices.append(index + 2)
+        else:
+            match_result_third_column = regex_pattern1.search(value_in_third_column)
+            if match_result_third_column:
+                matching_rows_indices.append(index + 2)
+
+    print("Matching rows indices:")
+    print(matching_rows_indices)
+
+    if matching_rows_indices and matching_rows_indices[-1] < len(mac_listesi_exceli_oku) - 1:
+        next_index_to_search = matching_rows_indices[-1] + 2
+        print(next_index_to_search)
+
+        for index, row in mac_listesi_exceli_oku.iloc[next_index_to_search:].iterrows():
+            value_in_second_column = str(row.iloc[1])
+            value_in_third_column = str(row.iloc[2])
+
+            match_result_second_column = regex_pattern2.search(value_in_second_column)
+            if match_result_second_column:
+                matching_rows_indices.append(index + 2)
+                break  # Eğer eşleşme bulunduysa döngüyü kır
+            else:
+                match_result_third_column = regex_pattern2.search(value_in_third_column)
+                if match_result_third_column:
+                    matching_rows_indices.append(index + 2)
+                    break  # Eğer eşleşme bulunduysa döngüyü kır
+
+            continue  # Döngüye geri dön
+
+    print("Matching rows indices after additional search:")
+    print(matching_rows_indices)
+
+
+'''
+    # re.match fonksiyonunu kullanın
+    for index, row in mac_listesi_exceli_oku.iterrows():
+        value_in_third_column = str(row.iloc[2])
+        value_in_second_column = str(row.iloc[1])
+
+        match_result_second_column = re.match("\s*(\d{2}\s\w+\s\d{4}\s)", value_in_second_column)
+        if match_result_second_column:
+            clean_output = match_result_second_column.group(1)
+            print(clean_output)
+        else:
+            match_result_in_third_column = re.match("\d{2}\s\w+\s\d{4}\s", value_in_third_column)
+            if match_result_in_third_column:
+                print(match_result_in_third_column.group())
+'''
+'''
+    for maclar in mac_listesi:
+        ikinci_eleman = maclar[1]  # İkinci elemanın indeksi genellikle 1 olur
+        current_field = maclar[0]
+'''
+'''    
+    for index, row in mac_listesi_exceli_oku.iterrows():
+        value_in_third_column = str(row.iloc[2])
+        value_in_second_column = str(row.iloc[1])
+
+        match_result_second_column = re.match("\s*(\d{2}\s\w+\s\d{4}\s)", value_in_second_column)
+        if match_result_second_column:
+            second_column_value = match_result_second_column.group().strip()
+            
+            print(f"Second column value: {second_column_value}")
+            print(f"tarih2 value: {tarih2}")
+
+
+            # Her durumu kontrol et
+            if second_column_value[0] == tarih2:
+                print("First character match")
+                print(tarih2)
+            elif second_column_value[1] == tarih2:
+                print("Second character match")
+                print(tarih2)
+            elif second_column_value[2] == tarih2:
+                print("Third character match")
+                print(tarih2)
+            elif second_column_value[3] == tarih2:
+                print("Fourth character match")
+                print(tarih2)
+            else:
+                print("No character match")
+            
+        else:
+            match_result_in_third_column = re.match("\d{2}\s\w+\s\d{4}\s", value_in_third_column)
+            if match_result_in_third_column:
+                # Regex ifadesi içinde doğrudan tarih kontrolü
+                if tarih2 in str(match_result_in_third_column.group()).strip():
+                    print(tarih2)
+'''            
+'''
         if ikinci_eleman in ['U 13 ELİT', 'U 13 1.KÜME']:
             if not hakem_listesi:
                 print("Warning: No more referees available. Resetting referee list.")
@@ -98,8 +207,6 @@ def mac_atamasi():
 
             # Update the previous field for the next iteration
             previous_field = current_field
-        else:
-            print("Skipping non-'U 13 ELİT' match")
 
     # Atanamayan (kalan) hakemleri ekle
     kalan_hakemler.extend(hakem_listesi)
@@ -112,7 +219,7 @@ def mac_atamasi():
     print("Kalan Hakemler:")
     for hakem in kalan_hakemler:
         print(hakem)
-
+'''
 
 mac_atamasi()
 
