@@ -340,7 +340,6 @@ def mazeretsiz_hakemler():
         worksheet = workbook['Sheet1']
 
         # Mazeretli hakemlerin satırlarını renklendir
-        index = 0
         for idx, refree in enumerate(refree_names):
             is_row_filled = False
             for col in range(1, worksheet.max_column + 1):
@@ -360,7 +359,6 @@ def mazeretsiz_hakemler():
                     cell = worksheet.cell(row=idx + 2, column=col)
                     fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
                     cell.fill = fill
-            index += 1
             print(f"satır = {idx} {is_row_filled}")
                     
                     
